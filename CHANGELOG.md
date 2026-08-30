@@ -4,6 +4,23 @@ All notable changes to the Knutwurst Marlin firmware for the Anycubic i3 Mega, M
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Each entry notes the upstream Marlin release it was built on where it changed. Pre-releases (betas and RCs) are folded into their final version.
 
+## [1.7.0-inofficial] - 2026-08-31
+
+Built on Marlin 2.1.2.8.
+
+### Added
+- Custom Chiron firmware variant with BLTouch, TMC2208/TMC2209 stepper support, and a compatible thermistor setup for this printer.
+- The local PlatformIO configuration updates needed for the custom Chiron/TMC/BLTouch build.
+- Explicit version tracking for the unofficial fork in the firmware metadata and changelog.
+
+### Changed
+- Updated the custom build metadata to `1.7.0-inofficial` and refreshed the distribution date.
+- Aligned the touchscreen, pin definitions, and printer config to the local hardware setup used on this machine.
+
+### Fixed
+- Corrected the config mismatch between the stock Chiron settings and the custom BLTouch/TMC configuration used in this fork.
+- Kept the build consistent with the updated Marlin 2.1.2.8 base while preserving the local printer-specific setup.
+
 ## [1.6.0] - 2026-06-08
 
 Built on Marlin 2.1.2.7.
