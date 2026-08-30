@@ -1234,7 +1234,7 @@ void AnycubicTouchscreenClass::RenderSpecialMenu(uint16_t selectedNumber) {
         break;
     #endif
 
-    #if ENABLED(KNUTWURST_CHIRON)
+    #if ENABLED(KNUTWURST_CHIRON) && DISABLED(KNUTWURST_BLTOUCH)
       case 4: // Page 2 for Chiron ABL
         SENDLINE_PGM(SM_EZLVL_MENU_S);
         SENDLINE_PGM(SM_EZLVL_MENU_L);

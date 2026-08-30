@@ -638,7 +638,7 @@
  *   998 : Dummy Table that ALWAYS reads 25°C or the temperature defined below.
  *   999 : Dummy Table that ALWAYS reads 100°C or the temperature defined below.
  */
-#if ENABLED(KNUTWURST_4MAXP2)
+#if EITHER(KNUTWURST_4MAXP2, KNUTWURST_CHIRON)
   #define TEMP_SENSOR_0 11
 #else
   #define TEMP_SENSOR_0 1
@@ -793,9 +793,9 @@
   #endif
 
   #if ENABLED(KNUTWURST_CHIRON)
-    #define DEFAULT_KP  20.00
-    #define DEFAULT_KI   0.50
-    #define DEFAULT_KD 106.55
+    #define DEFAULT_KP 13.65
+    #define DEFAULT_KI  0.99
+    #define DEFAULT_KD 46.96
   #endif
 
   #if ENABLED(KNUTWURST_4MAXP2)
@@ -1677,7 +1677,7 @@
 /**
  * Z Servo Probe, such as an endstop switch on a rotating arm.
  */
-#if ENABLED(KNUTWURST_CHIRON)
+#if ENABLED(KNUTWURST_CHIRON) && DISABLED(KNUTWURST_BLTOUCH)
   #define Z_PROBE_SERVO_NR 0       // Defaults to SERVO 0 connector.
   #define Z_SERVO_ANGLES { 70, 0 } // Z Servo Deploy and Stow angles
 #endif
@@ -1839,12 +1839,14 @@
  *     |    [-]    |
  *     O-- FRONT --+
  */
-#if ENABLED(KNUTWURST_BLTOUCH)
+#if BOTH(KNUTWURST_BLTOUCH, KNUTWURST_CHIRON)
+  #define NOZZLE_TO_PROBE_OFFSET { -45.493, -9.894, -3.00 } // Verify Z on the printer, then save with M500
+#elif ENABLED(KNUTWURST_BLTOUCH)
   #define NOZZLE_TO_PROBE_OFFSET { -2, -25, -0.4 } // https://www.thingiverse.com/thing:2824005
   // #define NOZZLE_TO_PROBE_OFFSET { 29, -15, 0 } //X-Carriage
 #endif
 
-#if ENABLED(KNUTWURST_CHIRON)
+#if ENABLED(KNUTWURST_CHIRON) && DISABLED(KNUTWURST_BLTOUCH)
   #define NOZZLE_TO_PROBE_OFFSET { 0, 0, -16.8 }
 #endif
 
@@ -2581,7 +2583,7 @@
 #if EITHER(AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_BILINEAR)
 
   // Set the number of grid points per dimension.
-  #define GRID_MAX_POINTS_X 5
+  #define GRID_MAX_POINTS_X 11
   #define GRID_MAX_POINTS_Y GRID_MAX_POINTS_X
 
   // Probe along the Y axis, advancing X after each column

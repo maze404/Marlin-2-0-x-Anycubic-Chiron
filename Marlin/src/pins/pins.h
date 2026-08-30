@@ -213,7 +213,7 @@
   #include "ramps/pins_PXMALION_CORE_I3.h"          // ATmega2560                           env:mega2560
 // PATCH START: Knutwurst
 #elif MB(TRIGORILLA_CHIRON)
-  #include "ramps/pins_TRIGORILLA_CHIRON.h"         // ATmega2560                           env:mega2560 env:CHIRON env:CHIRON_TMC env:CHIRON_DGUS env:CHIRON_DGUS_TMC
+  #include "ramps/pins_TRIGORILLA_CHIRON.h"         // ATmega2560                           env:mega2560 env:CHIRON env:CHIRON_TMC env:CHIRON_BLT env:CHIRON_TMC_BLT env:CHIRON_DGUS env:CHIRON_DGUS_TMC
 // PATCH END: Knutwurst
 
 //
