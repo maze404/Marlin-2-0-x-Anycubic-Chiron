@@ -950,7 +950,7 @@ G29_TYPE GcodeSuite::G29() {
 
   report_current_position();
 
-  G29_RETURN(isnan(abl.measured_z), true);
+  G29_RETURN(isnan(abl.measured_z), !isnan(abl.measured_z));
 }
 
 #endif // HAS_ABL_NOT_UBL

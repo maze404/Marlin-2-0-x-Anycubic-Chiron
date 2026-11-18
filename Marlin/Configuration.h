@@ -49,7 +49,7 @@
  * disabled in production. It can cause the
  * printer to stutter.
  */
-// #define KNUTWURST_DEBUG
+#define KNUTWURST_DEBUG
 
 /*
  * Adjust the Trigorilla pin mapping.
@@ -895,9 +895,9 @@
     #define DEFAULT_BED_KI  49.57
     #define DEFAULT_BED_KD 319.73
   #elif ENABLED(KNUTWURST_CHIRON)
-    #define DEFAULT_BED_KP   97.10
-    #define DEFAULT_BED_KI    1.41
-    #define DEFAULT_BED_KD 1675.16
+    #define DEFAULT_BED_KP  89.84
+    #define DEFAULT_BED_KI  12.90
+    #define DEFAULT_BED_KD 417.07
   #elif ENABLED(KNUTWURST_4MAXP2)
     #define DEFAULT_BED_KP 251.78
     #define DEFAULT_BED_KI 49.57
@@ -1431,11 +1431,7 @@
 #endif
 
 #if ENABLED(KNUTWURST_CHIRON)
-  #if ENABLED(KNUTWURST_BMG)
-    #define DEFAULT_MAX_FEEDRATE        { 100, 100, 20, 40 }
-  #else
-    #define DEFAULT_MAX_FEEDRATE        { 100, 100, 20, 60 }
-  #endif
+  #define DEFAULT_MAX_FEEDRATE          { 300, 300, 12, 120 }
 #endif
 
 #if ENABLED(KNUTWURST_4MAXP2)
@@ -1464,7 +1460,7 @@
 #endif
 
 #if ENABLED(KNUTWURST_CHIRON)
-  #define DEFAULT_MAX_ACCELERATION      { 350, 350, 50, 20000 }
+  #define DEFAULT_MAX_ACCELERATION      { 1000, 1000, 200, 5000 }
 #endif
 
 #if ENABLED(KNUTWURST_4MAXP2)
@@ -1516,9 +1512,9 @@
 #endif
 
 #if ENABLED(KNUTWURST_CHIRON)
-  #define DEFAULT_ACCELERATION           350    // X, Y, Z and E acceleration for printing moves
-  #define DEFAULT_RETRACT_ACCELERATION  2000   // 3000    // E acceleration for retracts
-  #define DEFAULT_TRAVEL_ACCELERATION    350    // X, Y, Z acceleration for travel (non printing) moves
+  #define DEFAULT_ACCELERATION          1000    // X, Y, Z and E acceleration for printing moves
+  #define DEFAULT_RETRACT_ACCELERATION  1250    // E acceleration for retracts
+  #define DEFAULT_TRAVEL_ACCELERATION    700    // X, Y, Z acceleration for travel (non printing) moves
 #endif
 
 #if ENABLED(KNUTWURST_4MAXP2)
@@ -1546,8 +1542,8 @@
     #define DEFAULT_YJERK  4.0
     #define DEFAULT_ZJERK  0.2
   #elif ENABLED(KNUTWURST_CHIRON)
-    #define DEFAULT_XJERK  4.0
-    #define DEFAULT_YJERK  4.0
+    #define DEFAULT_XJERK  8.0
+    #define DEFAULT_YJERK  8.0
     #define DEFAULT_ZJERK  0.4
   #elif ENABLED(KNUTWURST_4MAXP2)
     #define DEFAULT_XJERK  8.0
@@ -1570,7 +1566,11 @@
   #endif
 #endif
 
-#define DEFAULT_EJERK    10.0  // May be used by Linear Advance
+#if ENABLED(KNUTWURST_CHIRON)
+  #define DEFAULT_EJERK   4.5  // May be used by Linear Advance
+#else
+  #define DEFAULT_EJERK  10.0  // May be used by Linear Advance
+#endif
 
 /**
  * Junction Deviation Factor
@@ -2382,7 +2382,11 @@
  */
 #define FILAMENT_RUNOUT_SENSOR
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #define FIL_RUNOUT_ENABLED_DEFAULT true // Enable the sensor on startup. Override with M412 followed by M500.
+  #if ENABLED(KNUTWURST_CHIRON)
+    #define FIL_RUNOUT_ENABLED_DEFAULT false
+  #else
+    #define FIL_RUNOUT_ENABLED_DEFAULT true
+  #endif
   #define NUM_RUNOUT_SENSORS   1          // Number of sensors, up to one per extruder. Define a FIL_RUNOUT#_PIN for each.
 
   #define FIL_RUNOUT_STATE     HIGH       // Pin state indicating that filament is NOT present.
@@ -2510,8 +2514,11 @@
  * these options to restore the prior leveling state or to always enable
  * leveling immediately after G28.
  */
-#define RESTORE_LEVELING_AFTER_G28
-//#define ENABLE_LEVELING_AFTER_G28
+#if ENABLED(KNUTWURST_CHIRON)
+  #define ENABLE_LEVELING_AFTER_G28
+#else
+  #define RESTORE_LEVELING_AFTER_G28
+#endif
 
 /**
  * Auto-leveling needs preheating
@@ -2553,7 +2560,11 @@
    */
   #define ENABLE_LEVELING_FADE_HEIGHT
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    #define DEFAULT_LEVELING_FADE_HEIGHT 0.0 // (mm) Default fade height.
+    #if ENABLED(KNUTWURST_CHIRON)
+      #define DEFAULT_LEVELING_FADE_HEIGHT 10.0
+    #else
+      #define DEFAULT_LEVELING_FADE_HEIGHT 0.0
+    #endif
   #endif
 
   /**

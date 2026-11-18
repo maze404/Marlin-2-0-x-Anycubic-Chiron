@@ -29,6 +29,7 @@
 #include "../../../module/motion.h"
 #include "../../../module/stepper.h"
 #include "../../../module/temperature.h"
+#include "../../../feature/bedlevel/bedlevel.h"
 #include "../ui_api.h"
 
 #ifdef ANYCUBIC_TOUCHSCREEN
@@ -2020,17 +2021,13 @@ void AnycubicTouchscreenClass::GetCommandFromTFT() {
   #if ENABLED(KNUTWURST_CHIRON)
             case 29: // A29 bed grid read
               {
-                xy_uint8_t pos;
-                float      pos_z;
-
-                if (CodeSeen('X')) {
-                  pos.x = CodeValueInt();
-                }
-                if (CodeSeen('Y')) {
-                  pos.y = CodeValueInt();
-                }
-
-                pos_z = getMeshPoint(pos);
+                if (!CodeSeen('X')) break;
+                const int x = CodeValueInt();
+                if (!CodeSeen('Y')) break;
+                const int y = CodeValueInt();
+                if (!WITHIN(x, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(y, 0, GRID_MAX_POINTS_Y - 1)) break;
+                const xy_uint8_t pos{uint8_t(x), uint8_t(y)};
+                const float pos_z = getMeshPoint(pos);
 
                 SEND_PGM("A29V ");
                 LCD_SERIAL.print(pos_z * 100, 2);
@@ -2043,13 +2040,13 @@ void AnycubicTouchscreenClass::GetCommandFromTFT() {
                       injectCommands_P(G28_STR);
                     }
 
-                    if (isPositionKnown()) {
+                    if (isPositionKnown() && getLevelingIsValid()) {
     #if ENABLED(ANYCUBIC_TFT_DEBUG)
                       SERIAL_ECHOLNPGM("Moving to mesh point at x: ", pos.x, " y: ", pos.y, " z: ", pos_z);
     #endif
                       setAxisPosition_mm(5.0, Z);
-                      setAxisPosition_mm(17 + (93 * pos.x), X);
-                      setAxisPosition_mm(20 + (93 * pos.y), Y);
+                      setAxisPosition_mm(bedlevel.get_mesh_x(pos.x), X);
+                      setAxisPosition_mm(bedlevel.get_mesh_y(pos.y), Y);
                       setAxisPosition_mm(0.0, Z);
     #if ENABLED(ANYCUBIC_TFT_DEBUG)
                       SERIAL_ECHOLNPGM("Current Z: ", getAxisPosition_mm(Z));
@@ -2068,10 +2065,7 @@ void AnycubicTouchscreenClass::GetCommandFromTFT() {
                   SENDLINE_DBG_PGM("J24", "TFT Serial Debug: Forbid auto leveling... J24");
                 } else {
                   SENDLINE_DBG_PGM("J26", "TFT Serial Debug: Start auto leveling... J26");
-                  // injectCommands(F("G28\nG29"));
-                  injectCommands(F("G28\nG29\nM500\nG90\nM300 S440 P200\nM300 "
-                                   "S660 P250\nM300 S880 P300\nG1 Z30 "
-                                   "F4000\nG1 X5 F4000\nG91\nM84\nM420 S1"));
+                  injectCommands(F("G28\nG29"));
                   mediaPrintingState = AMPRINTSTATE_PROBING;
                 }
               } else {
@@ -2115,7 +2109,6 @@ void AnycubicTouchscreenClass::GetCommandFromTFT() {
               else {
                 if (CodeSeen('S')) { // Set offset (adjusts all points by value)
                   float Zshift = CodeValue();
-                  setSoftEndstopState(false);
                   if (isPrinting()) {
     #if ENABLED(ANYCUBIC_TFT_DEBUG)
                     SERIAL_ECHOLNPGM("Change Zoffset from:", live_Zoffset, " to ", live_Zoffset + Zshift);
@@ -2130,8 +2123,8 @@ void AnycubicTouchscreenClass::GetCommandFromTFT() {
     #if ENABLED(ANYCUBIC_TFT_DEBUG)
                       SERIAL_ECHOLNPGM("Steps to move Z: ", steps);
     #endif
-                      babystepAxis_steps(steps, Z);
-                      live_Zoffset += Zshift;
+                      if (babystepAxis_steps(steps, Z))
+                        live_Zoffset += mmFromWholeSteps(steps, Z);
                     }
 
                     SEND_PGM("A31V ");
@@ -2309,18 +2302,15 @@ void AnycubicTouchscreenClass::GetCommandFromTFT() {
   #if ENABLED(KNUTWURST_CHIRON)
             case 34: // a34 bed grid write
               {
-                xy_uint8_t pos;
-                if (CodeSeen('X')) {
-                  pos.x = constrain(CodeValueInt(), 0, GRID_MAX_POINTS_X);
-                }
-                if (CodeSeen('Y')) {
-                  pos.y = constrain(CodeValueInt(), 0, GRID_MAX_POINTS_Y);
-                }
-
-                float currmesh = getMeshPoint(pos);
-
                 if (CodeSeen('V')) {
                   float newval = float(constrain(CodeValue() / 100, -10, 10));
+                  if (!CodeSeen('X')) break;
+                  const int x = CodeValueInt();
+                  if (!CodeSeen('Y')) break;
+                  const int y = CodeValueInt();
+                  if (!WITHIN(x, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(y, 0, GRID_MAX_POINTS_Y - 1) || !getLevelingIsValid()) break;
+                  const xy_uint8_t pos{uint8_t(x), uint8_t(y)};
+                  const float currmesh = getMeshPoint(pos);
     #if ENABLED(ANYCUBIC_TFT_DEBUG)
                   SERIAL_ECHOLNPGM("Change mesh point x:", pos.x, " y:", pos.y);
                   SERIAL_ECHOLNPGM("from ", currmesh, " to ", newval);
@@ -2328,7 +2318,6 @@ void AnycubicTouchscreenClass::GetCommandFromTFT() {
                   setMeshPoint(pos, newval);
                   if (mediaPrintingState == AMPRINTSTATE_NOT_PRINTING || mediaPrintingState == AMPRINTSTATE_PROBING) {
                     if (selectedmeshpoint.x == pos.x && selectedmeshpoint.y == pos.y) {
-                      setSoftEndstopState(false);
                       float currZpos = getAxisPosition_mm(Z);
     #if ENABLED(ANYCUBIC_TFT_DEBUG)
                       SERIAL_ECHOLNPGM("Move Z pos from ", currZpos, " to ",
@@ -2566,9 +2555,12 @@ void AnycubicTouchscreenClass::GetCommandFromTFT() {
   void AnycubicTouchscreenClass::OnPrintTimerStarted() {
   #if ENABLED(SDSUPPORT)
     if (mediaPrintingState == AMPRINTSTATE_PRINTING) {
-      SENDLINE_DBG_PGM("J04",
-                       "TFT Serial Debug: Starting SD Print... soft endstops disabled J04"); // J04 Starting Print
-      setSoftEndstopState(false);
+      SENDLINE_DBG_PGM("J04", "TFT Serial Debug: Starting SD Print... J04"); // J04 Starting Print
+      #if ENABLED(KNUTWURST_CHIRON)
+        setSoftEndstopState(true);
+      #else
+        setSoftEndstopState(false);
+      #endif
       live_Zoffset = 0.0;
       powerOFFflag = false;
     }

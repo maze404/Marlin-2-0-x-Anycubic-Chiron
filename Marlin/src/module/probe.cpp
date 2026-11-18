@@ -361,7 +361,7 @@ void Probe::do_z_raise(const float z_raise) {
   do_z_clearance(z_dest);
 }
 
-FORCE_INLINE void probe_specific_action(const bool deploy) {
+FORCE_INLINE bool probe_specific_action(const bool deploy) {
   #if ENABLED(PAUSE_BEFORE_DEPLOY_STOW)
 
     // Start preheating before waiting for user confirmation that the probe is ready.
@@ -411,7 +411,7 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
 
   #elif ENABLED(BLTOUCH)
 
-    deploy ? bltouch.deploy() : bltouch.stow();
+    return deploy ? bltouch.deploy() : bltouch.stow();
 
   #elif HAS_Z_SERVO_PROBE
 
@@ -431,6 +431,8 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
     UNUSED(deploy);
 
   #endif
+
+  return false;
 }
 
 #if ANY(PREHEAT_BEFORE_PROBING, PREHEAT_BEFORE_LEVELING)
@@ -544,7 +546,7 @@ bool Probe::set_deployed(const bool deploy) {
     if (PROBE_TRIGGERED() == deploy) {
       if (!deploy) endstops.enable_z_probe(false); // Switch off triggered when stowed probes early
                                                    // otherwise an Allen-Key probe can't be stowed.
-      probe_specific_action(deploy);
+      if (probe_specific_action(deploy)) return true;
     }
 
     if (PROBE_TRIGGERED() == deploy) {             // Unchanged after deploy/stow action?
@@ -558,7 +560,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   #else
 
-    probe_specific_action(deploy);
+    if (probe_specific_action(deploy)) return true;
 
   #endif
 

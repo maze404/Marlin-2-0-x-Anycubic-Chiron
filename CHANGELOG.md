@@ -4,6 +4,35 @@ All notable changes to the Knutwurst Marlin firmware for the Anycubic i3 Mega, M
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Each entry notes the upstream Marlin release it was built on where it changed. Pre-releases (betas and RCs) are folded into their final version.
 
+## [1.8.0-inofficial] - 2026-11-18
+
+Built on Marlin 2.1.2.9.
+
+### Added
+- Chiron-specific motion, acceleration, jerk, and bed PID defaults based on the printer's reported settings.
+- Leveling diagnostics for investigating BLTouch probe failures.
+
+### Changed
+- Update the firmware base from Marlin 2.1.2.8 to 2.1.2.9.
+- Set Chiron bilinear leveling to fade over 10 mm and enable compensation after homing when a valid mesh is available.
+- Disable the Chiron filament runout sensor by default.
+- Keep Chiron software travel limits enabled during touchscreen SD prints and mesh adjustments.
+
+### Fixed
+- Propagate BLTouch deploy and stow failures through the generic probe path.
+- Validate touchscreen mesh indices and use the mesh's actual coordinates when moving to a point.
+- Prevent touchscreen-triggered leveling from saving EEPROM automatically; save with `M500` after confirming a successful probe run.
+- Make the reported live Z adjustment match the accepted, step-quantized babystep.
+- Report leveling completion only when probing succeeds.
+
+### Verification
+- Successfully build `CHIRON_TMC_BLT` and `CHIRON` PlatformIO environments.
+
+### Notes
+- The reported bed mesh is not embedded in firmware. A valid mesh must be retained or generated and saved to EEPROM.
+- Leveling debug output is enabled for diagnosis and may cause stuttering; disable it for normal printing.
+- BLTouch behavior has not been verified on the physical printer.
+
 ## [1.7.0-inofficial] - 2026-08-31
 
 Built on Marlin 2.1.2.8.
