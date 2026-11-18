@@ -17,15 +17,20 @@ on:
     - data/**
     - docs/**
     - '**/*.md'
+  release:
+    types: [published]
+
+permissions:
+  contents: write
 
 jobs:
   build:
     name: Build
-    if: github.repository == 'knutwurst/Marlin-2-0-x-Anycubic-i3-MEGA-S'
 
     runs-on: ubuntu-latest
 
     strategy:
+       max-parallel: 8
        matrix:
          platform:
          # Knutwurst Base Environments
@@ -73,6 +78,8 @@ jobs:
          - MEGA_P_DGUS_TMC_BLT_11
          - CHIRON
          - CHIRON_TMC
+         - CHIRON_BLT
+         - CHIRON_TMC_BLT
          - CHIRON_DGUS
          - CHIRON_DGUS_TMC
          - 4MAXP2
@@ -111,6 +118,13 @@ jobs:
         CUSTOM_BUILD_VERSION=$(egrep -o "([0-9]{1,}\.)+[a-zA-Z0-9_.-]{1,}" Marlin/src/inc/Version.h -m2 | tail -n1) && \
         mv .pio/build/${{ matrix.platform }}/firmware.hex .pio/build/${{ matrix.platform }}/${{ matrix.platform }}_v$CUSTOM_BUILD_VERSION.hex
 
+    - name: Upload firmware to GitHub Release
+      if: github.event_name == 'release'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        RELEASE_TAG: ${{ github.event.release.tag_name }}
+      run: gh release upload "$RELEASE_TAG" .pio/build/${{ matrix.platform }}/${{ matrix.platform }}_v*.hex --clobber
+
     #- name: Archive artifacts into single Files
     #  uses: actions/upload-artifact@master
     #  with:
@@ -130,7 +144,6 @@ jobs:
     name: Merge All Artifacts
     needs: build
     runs-on: ubuntu-latest
-    if: github.repository == 'knutwurst/Marlin-2-0-x-Anycubic-i3-MEGA-S'
 
     steps:
     - name: Merge all artifacts into one

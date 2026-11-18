@@ -155,6 +155,14 @@ The output is `.pio/build/CHIRON_TMC_BLT/firmware.hex`. The verified build uses
 7,075 of 8,192 bytes of RAM (86.4%) and 150,594 of 253,952 bytes of flash
 (59.3%).
 
+### GitHub Releases
+
+Publishing a GitHub Release builds every PlatformIO environment and attaches
+one versioned HEX file per environment, such as
+`CHIRON_TMC_BLT_v1.8.0-inofficial.hex`. Pushes to `master` also build every
+environment and retain the HEX files as workflow artifacts. Use
+`.github/release_template.md` for the release description.
+
 
 # Knutwurst's original ReadMe Content
 
