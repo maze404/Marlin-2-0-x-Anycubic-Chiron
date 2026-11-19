@@ -731,6 +731,8 @@
 // (Use MINTEMP for thermistor short/failure protection.)
 #if ENABLED(KNUTWURST_4MAXP2)
   #define HEATER_0_MAXTEMP 300
+#elif ENABLED(KNUTWURST_CHIRON)
+  #define HEATER_0_MAXTEMP 320
 #else
   #define HEATER_0_MAXTEMP 285
 #endif
